@@ -43,4 +43,38 @@ export const usersRoute = new Elysia({ prefix: "/api" })
       email: t.String({ format: "email" }),
       password: t.String({ minLength: 6 }),
     })
+  })
+  .post("/users/login", async ({ body, set }) => {
+    try {
+      const { email, password } = body;
+      
+      const token = await usersService.login({ email, password });
+      
+      if (!token) {
+        set.status = 400; // Bad Request
+        return {
+          status: "error",
+          message: "Password or Email is incorrect",
+          data: null,
+        };
+      }
+
+      return {
+        status: "success",
+        message: "User logged in successfully",
+        data: token,
+      };
+    } catch (error: any) {
+      set.status = 500;
+      return {
+        status: "error",
+        message: error.message || "Internal server error",
+        data: null,
+      };
+    }
+  }, {
+    body: t.Object({
+      email: t.String({ format: "email" }),
+      password: t.String({ minLength: 6 }),
+    })
   });

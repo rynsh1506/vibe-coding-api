@@ -1,5 +1,5 @@
 import { db } from "../db";
-import { users } from "../db/schema";
+import { users, sessions } from "../db/schema";
 import { eq } from "drizzle-orm";
 
 export class UsersService {
@@ -43,6 +43,34 @@ export class UsersService {
     // Omit password from the returned object
     const { password, ...userWithoutPassword } = newUser;
     return userWithoutPassword;
+  }
+
+  /**
+   * Login user and create session
+   */
+  async login(data: { email: string; password: string }) {
+    // 1. Find user by email
+    const user = await this.findByEmail(data.email);
+    if (!user) {
+      return null;
+    }
+
+    // 2. Verify password using Bun's native password verifier
+    const isPasswordValid = await Bun.password.verify(data.password, user.password);
+    if (!isPasswordValid) {
+      return null;
+    }
+
+    // 3. Generate secure session token (UUID v4)
+    const token = crypto.randomUUID();
+
+    // 4. Save session to database
+    await db.insert(sessions).values({
+      token,
+      userId: user.id,
+    });
+
+    return token;
   }
 }
 
