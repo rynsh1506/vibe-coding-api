@@ -98,7 +98,7 @@ export const usersRoute = new Elysia({ prefix: "/api" })
         return { token, user };
       })
       .guard({
-        beforeHandle({ user, set }) {
+        beforeHandle({ user, set }: any) {
           if (!user) {
             set.status = 401;
             return {
