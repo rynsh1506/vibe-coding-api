@@ -97,16 +97,14 @@ export const usersRoute = new Elysia({ prefix: "/api" })
         const user = await usersService.getUserByToken(token);
         return { token, user };
       })
-      .guard({
-        beforeHandle({ user, set }) {
-          if (!user) {
-            set.status = 401;
-            return {
-              status: "error",
-              message: "Unauthorized",
-              data: null,
-            };
-          }
+      .onBeforeHandle(({ user, set }) => {
+        if (!user) {
+          set.status = 401;
+          return {
+            status: "error",
+            message: "Unauthorized",
+            data: null,
+          };
         }
       })
       .get("/me", async ({ user }) => {
