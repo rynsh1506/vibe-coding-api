@@ -1,7 +1,27 @@
 import { Elysia } from "elysia";
+import { swagger } from "@elysiajs/swagger";
 import { usersRoute } from "./routes/users-route";
 
 const app = new Elysia()
+  .use(
+    swagger({
+      documentation: {
+        info: {
+          title: "Vibe Coding API Documentation",
+          version: "1.0.0",
+        },
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: "http",
+              scheme: "bearer",
+              bearerFormat: "JWT",
+            },
+          },
+        },
+      },
+    })
+  )
   .use(usersRoute)
   .get("/", () => {
     return {
