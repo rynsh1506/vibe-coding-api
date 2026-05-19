@@ -72,6 +72,26 @@ export class UsersService {
 
     return token;
   }
+
+  /**
+   * Get user profile by session token
+   */
+  async getUserByToken(token: string) {
+    const result = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt,
+      })
+      .from(sessions)
+      .innerJoin(users, eq(sessions.userId, users.id))
+      .where(eq(sessions.token, token))
+      .limit(1);
+
+    return result[0] || null;
+  }
 }
 
 export const usersService = new UsersService();

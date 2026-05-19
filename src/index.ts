@@ -1,6 +1,4 @@
 import { Elysia } from "elysia";
-import { db } from "./db";
-import { users } from "./db/schema";
 import { usersRoute } from "./routes/users-route";
 
 const app = new Elysia()
@@ -10,20 +8,6 @@ const app = new Elysia()
       status: "success",
       message: "Welcome to Elysia API with Bun, Drizzle, and MySQL!",
     };
-  })
-  .get("/users", async () => {
-    try {
-      const allUsers = await db.select().from(users);
-      return {
-        status: "success",
-        data: allUsers,
-      };
-    } catch (error: any) {
-      return {
-        status: "error",
-        message: error.message || "Failed to fetch users. Note: Database connection might need to be configured.",
-      };
-    }
   })
   .listen(3000);
 
