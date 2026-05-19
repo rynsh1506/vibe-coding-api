@@ -97,13 +97,9 @@ export class UsersService {
    * Logout user by session token
    */
   async logout(token: string) {
-    const user = await this.getUserByToken(token);
-    if (!user) {
-      return false;
-    }
-
-    await db.delete(sessions).where(eq(sessions.token, token));
-    return true;
+    const result = await db.delete(sessions).where(eq(sessions.token, token));
+    const affectedRows = result[0]?.affectedRows ?? 0;
+    return affectedRows > 0;
   }
 }
 

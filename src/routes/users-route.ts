@@ -86,102 +86,53 @@ export const usersRoute = new Elysia({ prefix: "/api" })
       tags: ["Users"],
     }
   })
-  .get("/users/me", async ({ headers, set }) => {
-    try {
-      const authorization = headers["authorization"];
-      if (!authorization || !authorization.startsWith("Bearer ")) {
-        set.status = 401;
+  .group("/users", (app) =>
+    app
+      .derive(async ({ headers }) => {
+        const authorization = headers["authorization"];
+        const token = (authorization && authorization.startsWith("Bearer ")) ? authorization.substring(7) : null;
+        if (!token) {
+          return { token: null, user: null };
+        }
+        const user = await usersService.getUserByToken(token);
+        return { token, user };
+      })
+      .guard({
+        beforeHandle({ user, set }) {
+          if (!user) {
+            set.status = 401;
+            return {
+              status: "error",
+              message: "Unauthorized",
+              data: null,
+            };
+          }
+        }
+      })
+      .get("/me", async ({ user }) => {
         return {
-          status: "error",
-          message: "Unauthorized",
-          data: null,
+          status: "success",
+          message: "User fetched successfully",
+          data: user,
         };
-      }
-
-      const token = authorization.substring(7);
-      if (!token) {
-        set.status = 401;
+      }, {
+        detail: {
+          summary: "Get current user profile",
+          tags: ["Users"],
+          security: [{ bearerAuth: [] }],
+        }
+      })
+      .delete("/logout", async ({ token }) => {
+        await usersService.logout(token!);
         return {
-          status: "error",
-          message: "Unauthorized",
-          data: null,
+          status: "success",
+          message: "Logout successfully",
         };
-      }
-
-      const user = await usersService.getUserByToken(token);
-      if (!user) {
-        set.status = 401;
-        return {
-          status: "error",
-          message: "Unauthorized",
-          data: null,
-        };
-      }
-
-      return {
-        status: "success",
-        message: "User fetched successfully",
-        data: user,
-      };
-    } catch (error: any) {
-      set.status = 500;
-      return {
-        status: "error",
-        message: error.message || "Internal server error",
-        data: null,
-      };
-    }
-  }, {
-    detail: {
-      summary: "Get current user profile",
-      tags: ["Users"],
-      security: [{ bearerAuth: [] }],
-    }
-  })
-  .delete("/users/logout", async ({ headers, set }) => {
-    try {
-      const authorization = headers["authorization"];
-      if (!authorization || !authorization.startsWith("Bearer ")) {
-        set.status = 401;
-        return {
-          status: "error",
-          message: "Unauthorized",
-        };
-      }
-
-      const token = authorization.substring(7);
-      if (!token) {
-        set.status = 401;
-        return {
-          status: "error",
-          message: "Unauthorized",
-        };
-      }
-
-      const isLoggedOut = await usersService.logout(token);
-      if (!isLoggedOut) {
-        set.status = 401;
-        return {
-          status: "error",
-          message: "Unauthorized",
-        };
-      }
-
-      return {
-        status: "success",
-        message: "Logout successfully",
-      };
-    } catch (error: any) {
-      set.status = 500;
-      return {
-        status: "error",
-        message: error.message || "Internal server error",
-      };
-    }
-  }, {
-    detail: {
-      summary: "Logout current user",
-      tags: ["Users"],
-      security: [{ bearerAuth: [] }],
-    }
-  });
+      }, {
+        detail: {
+          summary: "Logout current user",
+          tags: ["Users"],
+          security: [{ bearerAuth: [] }],
+        }
+      })
+  );
