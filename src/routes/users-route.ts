@@ -42,7 +42,11 @@ export const usersRoute = new Elysia({ prefix: "/api" })
       name: t.String({ minLength: 1 }),
       email: t.String({ format: "email" }),
       password: t.String({ minLength: 6 }),
-    })
+    }),
+    detail: {
+      summary: "Register a new user",
+      tags: ["Users"],
+    }
   })
   .post("/users/login", async ({ body, set }) => {
     try {
@@ -76,7 +80,11 @@ export const usersRoute = new Elysia({ prefix: "/api" })
     body: t.Object({
       email: t.String({ format: "email" }),
       password: t.String({ minLength: 6 }),
-    })
+    }),
+    detail: {
+      summary: "Login user",
+      tags: ["Users"],
+    }
   })
   .get("/users/me", async ({ headers, set }) => {
     try {
@@ -122,5 +130,11 @@ export const usersRoute = new Elysia({ prefix: "/api" })
         message: error.message || "Internal server error",
         data: null,
       };
+    }
+  }, {
+    detail: {
+      summary: "Get current user profile",
+      tags: ["Users"],
+      security: [{ bearerAuth: [] }],
     }
   });
