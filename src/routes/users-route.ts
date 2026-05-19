@@ -137,4 +137,51 @@ export const usersRoute = new Elysia({ prefix: "/api" })
       tags: ["Users"],
       security: [{ bearerAuth: [] }],
     }
+  })
+  .delete("/users/logout", async ({ headers, set }) => {
+    try {
+      const authorization = headers["authorization"];
+      if (!authorization || !authorization.startsWith("Bearer ")) {
+        set.status = 401;
+        return {
+          status: "error",
+          message: "Unauthorized",
+        };
+      }
+
+      const token = authorization.substring(7);
+      if (!token) {
+        set.status = 401;
+        return {
+          status: "error",
+          message: "Unauthorized",
+        };
+      }
+
+      const isLoggedOut = await usersService.logout(token);
+      if (!isLoggedOut) {
+        set.status = 401;
+        return {
+          status: "error",
+          message: "Unauthorized",
+        };
+      }
+
+      return {
+        status: "success",
+        message: "Logout successfully",
+      };
+    } catch (error: any) {
+      set.status = 500;
+      return {
+        status: "error",
+        message: error.message || "Internal server error",
+      };
+    }
+  }, {
+    detail: {
+      summary: "Logout current user",
+      tags: ["Users"],
+      security: [{ bearerAuth: [] }],
+    }
   });

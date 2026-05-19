@@ -92,6 +92,19 @@ export class UsersService {
 
     return result[0] || null;
   }
+
+  /**
+   * Logout user by session token
+   */
+  async logout(token: string) {
+    const user = await this.getUserByToken(token);
+    if (!user) {
+      return false;
+    }
+
+    await db.delete(sessions).where(eq(sessions.token, token));
+    return true;
+  }
 }
 
 export const usersService = new UsersService();
