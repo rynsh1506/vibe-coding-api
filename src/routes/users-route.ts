@@ -97,40 +97,43 @@ export const usersRoute = new Elysia({ prefix: "/api" })
         const user = await usersService.getUserByToken(token);
         return { token, user };
       })
-      .onBeforeHandle(({ user, set }) => {
-        if (!user) {
-          set.status = 401;
+      .guard({
+        beforeHandle({ user, set }) {
+          if (!user) {
+            set.status = 401;
+            return {
+              status: "error",
+              message: "Unauthorized",
+              data: null,
+            };
+          }
+        }
+      }, (app) => app
+        .get("/me", async ({ user }) => {
           return {
-            status: "error",
-            message: "Unauthorized",
-            data: null,
+            status: "success",
+            message: "User fetched successfully",
+            data: user,
           };
-        }
-      })
-      .get("/me", async ({ user }) => {
-        return {
-          status: "success",
-          message: "User fetched successfully",
-          data: user,
-        };
-      }, {
-        detail: {
-          summary: "Get current user profile",
-          tags: ["Users"],
-          security: [{ bearerAuth: [] }],
-        }
-      })
-      .delete("/logout", async ({ token }) => {
-        await usersService.logout(token!);
-        return {
-          status: "success",
-          message: "Logout successfully",
-        };
-      }, {
-        detail: {
-          summary: "Logout current user",
-          tags: ["Users"],
-          security: [{ bearerAuth: [] }],
-        }
-      })
+        }, {
+          detail: {
+            summary: "Get current user profile",
+            tags: ["Users"],
+            security: [{ bearerAuth: [] }],
+          }
+        })
+        .delete("/logout", async ({ token }) => {
+          await usersService.logout(token!);
+          return {
+            status: "success",
+            message: "Logout successfully",
+          };
+        }, {
+          detail: {
+            summary: "Logout current user",
+            tags: ["Users"],
+            security: [{ bearerAuth: [] }],
+          }
+        })
+      )
   );
